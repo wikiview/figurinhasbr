@@ -1,24 +1,69 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
+import { useEffect } from 'react';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { ActivityIndicator, View } from 'react-native';
 import 'react-native-reanimated';
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { AuthProvider, useAuth } from '@/src/providers/AuthProvider';
+import { PreferencesProvider } from '@/src/providers/PreferencesProvider';
+import { useResolvedTheme } from '@/src/hooks/usePreferences';
+import { useTheme } from '@/src/hooks/useTheme';
+import { warmupAds } from '@/src/lib/ads';
 
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
+function AuthGate() {
+  const { session, loading } = useAuth();
+  const segments = useSegments();
+  const router = useRouter();
+  const t = useTheme();
 
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  useEffect(() => {
+    warmupAds();
+  }, []);
+
+  useEffect(() => {
+    if (loading) return;
+    const inAuth = segments[0] === '(auth)';
+    if (!session && !inAuth) {
+      router.replace('/(auth)/login');
+    } else if (session && inAuth) {
+      router.replace('/(tabs)');
+    }
+  }, [session, loading, segments, router]);
+
+  if (loading) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: t.bg,
+        }}>
+        <ActivityIndicator />
+      </View>
+    );
+  }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="(auth)" />
+      <Stack.Screen name="(tabs)" />
+    </Stack>
+  );
+}
+
+function ThemedStatusBar() {
+  const resolved = useResolvedTheme();
+  return <StatusBar style={resolved === 'dark' ? 'light' : 'dark'} />;
+}
+
+export default function RootLayout() {
+  return (
+    <PreferencesProvider>
+      <AuthProvider>
+        <AuthGate />
+        <ThemedStatusBar />
+      </AuthProvider>
+    </PreferencesProvider>
   );
 }

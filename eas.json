@@ -1,0 +1,49 @@
+{
+  "cli": {
+    "version": ">= 5.0.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal",
+      "channel": "preview",
+      "env": {
+        "EXPO_PUBLIC_SUPABASE_URL": "https://amhmgnlzluhsyikaryyt.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_z-XHFkQrLhGN4Aqcyj9NIg_8PsE0iuR",
+        "EXPO_PUBLIC_RC_API_KEY_IOS": "appl_WulgcvOcSxKFkHRqLiSQQqIkfPZ",
+        "EXPO_PUBLIC_RC_API_KEY_ANDROID": "test_RnmfwinfZVfXVhgVycCqnhJJALy"
+      },
+      "android": {
+        "buildType": "apk"
+      },
+      "ios": {
+        "simulator": false
+      }
+    },
+    "production": {
+      "channel": "production",
+      "env": {
+        "EXPO_PUBLIC_SUPABASE_URL": "https://amhmgnlzluhsyikaryyt.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_z-XHFkQrLhGN4Aqcyj9NIg_8PsE0iuR",
+        "EXPO_PUBLIC_USE_REAL_ADS": "true",
+        "EXPO_PUBLIC_RC_API_KEY_IOS": "appl_WulgcvOcSxKFkHRqLiSQQqIkfPZ"
+      },
+      "android": {
+        "buildType": "app-bundle"
+      },
+      "autoIncrement": true
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "ascAppId": "6770165340",
+        "appleTeamId": "C54F8KY543"
+      }
+    }
+  }
+}

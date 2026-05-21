@@ -8,10 +8,22 @@
     "scheme": "figurinha",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "platforms": [
+      "ios",
+      "android"
+    ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false,
+      "bundleIdentifier": "app.figurinhasbr.copa2026",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "Usamos a câmera pra escanear o código no verso das suas figurinhas e marcar automaticamente no álbum.",
+        "NSPhotoLibraryUsageDescription": "Usamos suas fotos pra escanear figurinhas que você já fotografou e pra escolher a foto de capa do perfil.",
+        "NSPhotoLibraryAddUsageDescription": "Salvamos a capa que você gerou na sua galeria, se você quiser compartilhar."
+      }
     },
     "android": {
+      "package": "app.figurinhasbr.copa2026",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -20,10 +32,6 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
-    },
-    "web": {
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
       "expo-router",
@@ -38,11 +46,37 @@
             "backgroundColor": "#000000"
           }
         }
+      ],
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-5256697293336823~4498025111",
+          "iosAppId": "ca-app-pub-5256697293336823~6898017233"
+        }
+      ],
+      [
+        "expo-tracking-transparency",
+        {
+          "userTrackingPermission": "Permita este app usar seu identificador de publicidade para mostrar anúncios mais relevantes e apoiar o desenvolvimento. Você pode recusar e continuar usando o app normalmente."
+        }
       ]
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "47b00a97-c5f7-45e4-9f97-cd11da6dfb27"
+      }
+    },
+    "owner": "wikiview",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/47b00a97-c5f7-45e4-9f97-cd11da6dfb27"
     }
   }
 }

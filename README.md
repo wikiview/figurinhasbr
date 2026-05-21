@@ -1,50 +1,148 @@
-# Welcome to your Expo app 👋
+# ⚽ Figurinha — Copa do Mundo 2026
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+App fan-made (não-oficial, sem afiliação com FIFA ou Panini) pra ajudar
+colecionadores a organizar as ~980 figurinhas da Copa do Mundo 2026 e achar
+gente perto pra trocar.
 
-## Get started
+- Coleção: marca tenho / repetidas / faltam
+- Trocas: matching automático por cidade (quem tem repetida do que você precisa)
+- Contato: deep link pro WhatsApp
+- Premium R$ 7,90: sem anúncios + scan automático via Gemini Vision (em breve)
 
-1. Install dependencies
+## Stack
 
-   ```bash
-   npm install
-   ```
+- **Expo SDK 54** + **Expo Router** (file-based) + TypeScript
+- **Supabase** (auth + Postgres + RLS)
+- AsyncStorage pra sessão persistente
+- iOS, Android e Web a partir do mesmo código
 
-2. Start the app
+## Setup local
 
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+### 1. Clone e instale
 
 ```bash
-npm run reset-project
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### 2. Crie o projeto Supabase
 
-## Learn more
+1. https://supabase.com → New project (free tier serve)
+2. **SQL Editor** → cole o conteúdo de [`supabase/schema.sql`](supabase/schema.sql) e rode
+   - Cria tabelas, RLS, trigger de profile e a RPC `find_trade_matches`
+3. **Settings → API** → copie:
+   - Project URL → `EXPO_PUBLIC_SUPABASE_URL`
+   - `anon public` key → `EXPO_PUBLIC_SUPABASE_ANON_KEY`
+   - `service_role` key → `SUPABASE_SERVICE_ROLE_KEY` (só pra seed; **nunca** expor no app)
+4. **Authentication → Providers → Email** → desabilita "Confirm email" enquanto desenvolve (re-habilita em prod)
 
-To learn more about developing your project with Expo, look at the following resources:
+### 3. Variáveis de ambiente
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```bash
+cp .env.example .env
+# preencha as 3 chaves Supabase
+```
 
-## Join the community
+### 4. Popule o catálogo (980 figurinhas)
 
-Join our community of developers creating universal apps.
+```bash
+npm run seed:stickers
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Vai criar um placeholder das 980 figurinhas (20 especiais + 48 seleções × 20).
+Quando a lista completa for divulgada, edita `src/data/stickers-seed.ts` e roda de novo (é UPSERT idempotente).
+
+### 5. Rodando o app
+
+```bash
+npm start
+```
+
+Escaneie o QR com o **Expo Go** (Android/iOS) ou abra `w` pra browser.
+
+## Estrutura
+
+```
+app/                          # rotas (Expo Router)
+  _layout.tsx                 # raiz: AuthProvider + redirect auth
+  index.tsx                   # gate: redireciona logado/deslogado
+  (auth)/                     # grupo: login + signup
+  (tabs)/                     # grupo: app autenticado
+    index.tsx                 # Coleção (grid 4 colunas)
+    trades.tsx                # Matching de trocas
+    profile.tsx               # Editar perfil + premium + sair
+
+src/
+  lib/
+    supabase.ts               # client Supabase (com AsyncStorage)
+    types.ts                  # tipos compartilhados
+  providers/AuthProvider.tsx  # context de session + profile
+  components/StickerCard.tsx  # célula da grid
+  data/stickers-seed.ts       # 980 figurinhas placeholder
+
+supabase/schema.sql           # roda 1x no SQL Editor
+scripts/seed-stickers.ts      # importa o seed pro banco
+```
+
+## Modelo de dados
+
+| Tabela          | Pra que serve                                                |
+|-----------------|--------------------------------------------------------------|
+| `profiles`      | Estende `auth.users` com cidade/UF/WhatsApp (criado no signup) |
+| `stickers`      | Catálogo mestre das 980 figurinhas (id no formato `KOR-18`)  |
+| `user_stickers` | Coleção de cada usuário (`qty=0` falta, `1` tem, `2+` repetida) |
+| `trade_requests`| Propostas formais (v1)                                        |
+| `trade_messages`| Chat in-app (v1)                                              |
+| `user_ratings`  | Avaliação pós-troca                                           |
+
+A RPC `find_trade_matches(my_id)` faz o matching: pra cada usuário na sua
+cidade, lista as figurinhas que ele tem repetidas e você precisa, e vice-versa.
+
+## OCR de figurinha (premium R$ 7,90)
+
+Estratégia: usuário fotografa o **verso** da figurinha (ou um pacote inteiro
+de 7 versos lado a lado). O verso tem `KOR 18` impresso — Gemini Vision lê e
+devolve a lista de IDs.
+
+- Custo aproximado: **R$ 0,0002 por foto** (Gemini 2.0 Flash)
+- Coleção inteira (~140 fotos pra cobrir 980): **~R$ 0,03**
+- Margem absurda em cima do R$ 7,90 mensal/único
+
+Implementação:
+```
+expo-camera → tira foto → Gemini Vision (multimodal)
+→ retorno JSON estruturado com array de IDs
+→ upsert em user_stickers (+1 em qty)
+```
+
+Sem suposições: o ID é exatamente o que tá no verso (`KOR-18`, `BRA-3`,
+`FWC-2`). Os shinies/legends seguem o mesmo padrão.
+
+## Próximos passos
+
+- [ ] Substituir nomes placeholder por jogadores reais (quando lista pública for divulgada)
+- [ ] AdMob (banner + intersticial) — `react-native-google-mobile-ads`
+- [ ] RevenueCat para IAP do premium R$ 7,90
+- [ ] Câmera + Gemini Vision pro scan automático
+- [ ] Chat in-app (substituir WhatsApp link na v2)
+- [ ] Sistema de avaliação pós-troca
+- [ ] Push notification quando aparece match novo
+- [ ] Build com EAS e submit nas lojas
+
+## Deploy nas lojas
+
+```bash
+npm install -g eas-cli
+eas login
+eas build:configure
+eas build --platform all   # gera .aab e .ipa na cloud
+eas submit --platform all  # manda pra Google Play e App Store
+```
+
+iOS exige conta paga ($99/ano). Android é R$ 130 vitalício.
+
+## Segurança / privacidade
+
+- Cidade/UF é exposta entre usuários (necessário pro matching), endereço nunca
+- WhatsApp é opcional e o usuário escolhe se quer expor
+- Trocas presenciais: app sempre sugere local público. Avaliação 1-5★ pós-troca
+- RLS no Supabase impede usuário A de ler/editar coleção de B
