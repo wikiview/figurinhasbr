@@ -1,47 +1,69 @@
-// Slots do álbum que têm GIF de celebração no bucket `player-gifs` do Supabase Storage.
-// Mantém em sync com scripts/upload-player-gifs.ts — se subir um GIF novo, adicionar aqui.
+// Slots do álbum que têm GIF de celebração. Os arquivos são WebP animados
+// embutidos no bundle (assets/player-gifs/), convertidos dos GIFs originais via
+// scripts/convert-player-gifs.ts. Ficam no app — sem Storage, sem download em
+// runtime, sem "loading" antes da celebração tocar.
 
-import Constants from 'expo-constants';
+// O require() precisa ser estático (string literal) pro Metro empacotar o asset.
+const PLAYER_GIFS: Record<string, number> = {
+  'ARG-9': require('@/assets/player-gifs/ARG-9.webp'),
+  'ARG-17': require('@/assets/player-gifs/ARG-17.webp'),
+  'ARG-18': require('@/assets/player-gifs/ARG-18.webp'),
+  'ARG-19': require('@/assets/player-gifs/ARG-19.webp'),
+  'BEL-15': require('@/assets/player-gifs/BEL-15.webp'),
+  'BRA-2': require('@/assets/player-gifs/BRA-2.webp'),
+  'BRA-14': require('@/assets/player-gifs/BRA-14.webp'),
+  'BRA-20': require('@/assets/player-gifs/BRA-20.webp'),
+  'CAN-3': require('@/assets/player-gifs/CAN-3.webp'),
+  'COL-20': require('@/assets/player-gifs/COL-20.webp'),
+  'CRO-4': require('@/assets/player-gifs/CRO-4.webp'),
+  'CRO-9': require('@/assets/player-gifs/CRO-9.webp'),
+  'EGY-17': require('@/assets/player-gifs/EGY-17.webp'),
+  'ENG-11': require('@/assets/player-gifs/ENG-11.webp'),
+  'ENG-12': require('@/assets/player-gifs/ENG-12.webp'),
+  'ENG-16': require('@/assets/player-gifs/ENG-16.webp'),
+  'ENG-17': require('@/assets/player-gifs/ENG-17.webp'),
+  'ENG-18': require('@/assets/player-gifs/ENG-18.webp'),
+  'ESP-10': require('@/assets/player-gifs/ESP-10.webp'),
+  'ESP-15': require('@/assets/player-gifs/ESP-15.webp'),
+  'ESP-17': require('@/assets/player-gifs/ESP-17.webp'),
+  'FRA-2': require('@/assets/player-gifs/FRA-2.webp'),
+  'FRA-3': require('@/assets/player-gifs/FRA-3.webp'),
+  'FRA-4': require('@/assets/player-gifs/FRA-4.webp'),
+  'FRA-20': require('@/assets/player-gifs/FRA-20.webp'),
+  'GER-11': require('@/assets/player-gifs/GER-11.webp'),
+  'GER-15': require('@/assets/player-gifs/GER-15.webp'),
+  'KOR-18': require('@/assets/player-gifs/KOR-18.webp'),
+  'MAR-4': require('@/assets/player-gifs/MAR-4.webp'),
+  'MEX-16': require('@/assets/player-gifs/MEX-16.webp'),
+  'NED-3': require('@/assets/player-gifs/NED-3.webp'),
+  'NED-15': require('@/assets/player-gifs/NED-15.webp'),
+  'NOR-15': require('@/assets/player-gifs/NOR-15.webp'),
+  'POR-9': require('@/assets/player-gifs/POR-9.webp'),
+  'POR-10': require('@/assets/player-gifs/POR-10.webp'),
+  'POR-12': require('@/assets/player-gifs/POR-12.webp'),
+  'POR-15': require('@/assets/player-gifs/POR-15.webp'),
+  'POR-20': require('@/assets/player-gifs/POR-20.webp'),
+  'TUR-14': require('@/assets/player-gifs/TUR-14.webp'),
+  'TUR-20': require('@/assets/player-gifs/TUR-20.webp'),
+  'URU-10': require('@/assets/player-gifs/URU-10.webp'),
+  'URU-17': require('@/assets/player-gifs/URU-17.webp'),
+  'USA-16': require('@/assets/player-gifs/USA-16.webp'),
+};
 
-const PLAYER_GIF_SLOTS = new Set<string>([
-  'ARG-9', 'ARG-17', 'ARG-18', 'ARG-19',
-  'BEL-15',
-  'BRA-2', 'BRA-14', 'BRA-20',
-  'CAN-3',
-  'COL-20',
-  'CRO-4', 'CRO-9',
-  'EGY-17',
-  'ENG-11', 'ENG-12', 'ENG-16', 'ENG-17', 'ENG-18',
-  'ESP-10', 'ESP-15', 'ESP-17',
-  'FRA-2', 'FRA-3', 'FRA-4', 'FRA-20',
-  'GER-11', 'GER-15',
-  'KOR-18',
-  'MAR-4',
-  'MEX-16',
-  'NED-3', 'NED-15',
-  'NOR-15',
-  'POR-9', 'POR-10', 'POR-12', 'POR-15', 'POR-20',
-  'TUR-14', 'TUR-20',
-  'URU-10', 'URU-17',
-  'USA-16',
-]);
-
-function supabaseUrl(): string | null {
-  const extra = (Constants.expoConfig?.extra ?? {}) as { supabaseUrl?: string };
-  return process.env.EXPO_PUBLIC_SUPABASE_URL ?? extra.supabaseUrl ?? null;
-}
-
-export function hasPlayerGif(teamCode: string | null | undefined, number: string): boolean {
-  if (!teamCode) return false;
-  return PLAYER_GIF_SLOTS.has(`${teamCode}-${number}`);
-}
-
-export function getPlayerGifUrl(
+export function hasPlayerGif(
   teamCode: string | null | undefined,
   number: string,
-): string | null {
-  if (!hasPlayerGif(teamCode, number)) return null;
-  const url = supabaseUrl();
-  if (!url) return null;
-  return `${url}/storage/v1/object/public/player-gifs/${teamCode}-${number}.gif`;
+): boolean {
+  if (!teamCode) return false;
+  return `${teamCode}-${number}` in PLAYER_GIFS;
+}
+
+// Retorna o asset WebP embutido (resultado do require) pra usar direto em
+// <Image source={...} /> do expo-image. null se o slot não tem GIF.
+export function getPlayerGif(
+  teamCode: string | null | undefined,
+  number: string,
+): number | null {
+  if (!teamCode) return null;
+  return PLAYER_GIFS[`${teamCode}-${number}`] ?? null;
 }

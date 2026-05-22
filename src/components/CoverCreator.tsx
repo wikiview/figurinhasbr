@@ -20,6 +20,7 @@ import Constants from 'expo-constants';
 import { useAuth } from '@/src/providers/AuthProvider';
 import { useTheme } from '@/src/hooks/useTheme';
 import { flagUrl } from '@/src/lib/flags';
+import { addCover } from '@/src/lib/covers';
 import { PaywallModal } from '@/src/components/PaywallModal';
 import { ACHIEVEMENTS, loadAchievements } from '@/src/lib/achievements';
 import { showRewarded } from '@/src/lib/ads';
@@ -29,7 +30,6 @@ type CoverVariant = 'standard' | 'elite';
 type Props = {
   visible: boolean;
   onClose: () => void;
-  onCreated?: (coverUrl: string) => void;
   /** Pré-seleciona a variante. Default: 'standard'. Elite só é aceito se o user tem o achievement. */
   initialVariant?: CoverVariant;
 };
@@ -67,7 +67,6 @@ const TEAMS: { code: string; name: string }[] = [
 export function CoverCreator({
   visible,
   onClose,
-  onCreated,
   initialVariant = 'standard',
 }: Props) {
   const t = useTheme();
@@ -236,7 +235,7 @@ export function CoverCreator({
       } catch {
         data = null;
       }
-      if (!res.ok || !data?.cover_url) {
+      if (!res.ok || !data?.image_base64) {
         // user_message é texto curto e amigável vindo do backend.
         // NUNCA expõe `detail` (pode conter payload bruto do Gemini).
         const friendly =
@@ -253,9 +252,10 @@ export function CoverCreator({
         setStep('photo');
         return;
       }
-      setResultUrl(data.cover_url);
+      // A capa vem em base64 e é salva no device (nada vai pro Storage).
+      const saved = await addCover(data.image_base64, variant);
+      setResultUrl(saved.uri);
       await refreshProfile();
-      onCreated?.(data.cover_url);
     } catch {
       // Erros de rede / fetch — não temos payload do backend.
       Alert.alert(
@@ -384,7 +384,8 @@ export function CoverCreator({
         {step === 'photo' && (
           <ScrollView
             contentContainerStyle={styles.photoWrap}
-            keyboardShouldPersistTaps="handled">
+            keyboardShouldPersistTaps="handled"
+            automaticallyAdjustKeyboardInsets>
             <Text style={[styles.intro, { color: t.textMuted }]}>
               A IA mantém seu rosto e expressão e troca pela camisa de{' '}
               <Text style={{ color: t.text, fontWeight: '700' }}>

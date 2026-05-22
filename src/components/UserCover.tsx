@@ -13,9 +13,9 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '@/src/providers/AuthProvider';
-import { supabase } from '@/src/lib/supabase';
 import { useTheme } from '@/src/hooks/useTheme';
 import { flagUrl } from '@/src/lib/flags';
+import { useCovers } from '@/src/lib/covers';
 import { useParallaxTilt } from '@/src/hooks/useParallaxTilt';
 import { CoverGallery, type OriginRect } from '@/src/components/CoverGallery';
 
@@ -25,47 +25,26 @@ type Props = {
 };
 
 export function UserCover({ size = 92, hasEliteBadge = false }: Props) {
-  const { profile, session } = useAuth();
+  const { profile } = useAuth();
+  const { active } = useCovers();
   const t = useTheme();
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [origin, setOrigin] = useState<OriginRect | null>(null);
-  const [coverVariant, setCoverVariant] = useState<'standard' | 'elite' | null>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
   const cardRef = useRef<View>(null);
 
-  const photoUrl = profile?.cover_url ?? null;
+  // A capa ativa vem do store local (src/lib/covers.ts), não mais do
+  // profiles.cover_url. O parallax tilt só liga quando a capa é Elite.
+  const photoUrl = active?.uri ?? null;
+  const coverVariant = active?.variant ?? null;
   const teamCode = profile?.favorite_team_code ?? null;
   const teamFlag = teamCode ? flagUrl(teamCode, 160) : null;
   const name = profile?.display_name ?? '';
 
-  // Detecta a variante da capa ativa: query user_covers pela URL atual.
-  // O parallax tilt só liga quando a capa é Elite.
-  // Reset estado do load quando trocar de capa (cover_url muda).
+  // Reset do estado de load quando troca a capa.
   useEffect(() => {
     setImageLoaded(false);
   }, [photoUrl]);
-
-  useEffect(() => {
-    if (!photoUrl || !session?.user.id) {
-      setCoverVariant(null);
-      return;
-    }
-    let cancelled = false;
-    supabase
-      .from('user_covers')
-      .select('variant')
-      .eq('user_id', session.user.id)
-      .eq('url', photoUrl)
-      .limit(1)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (cancelled) return;
-        setCoverVariant((data?.variant as 'standard' | 'elite' | undefined) ?? 'standard');
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [photoUrl, session?.user.id]);
 
   // Tilt parallax via DeviceMotion — só ativo se a capa atual for Elite.
   // scale: 1.15 cobre o bound em tilt extremo (sem borda preta nas bordas).

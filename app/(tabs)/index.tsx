@@ -27,7 +27,7 @@ import { PlayerCelebration } from '@/src/components/PlayerCelebration';
 import { AchievementCelebration } from '@/src/components/AchievementCelebration';
 import { EliteUnlockedModal } from '@/src/components/EliteUnlockedModal';
 import { CoverCreator } from '@/src/components/CoverCreator';
-import { hasPlayerGif, getPlayerGifUrl } from '@/src/data/player-gifs';
+import { hasPlayerGif } from '@/src/data/player-gifs';
 import {
   ACHIEVEMENTS,
   type AchievementCode,
@@ -35,7 +35,6 @@ import {
   loadAchievements,
   unlockAchievement,
 } from '@/src/lib/achievements';
-import { Image as ExpoImage } from 'expo-image';
 import { CollectionHeader } from '@/src/components/CollectionHeader';
 import { TeamHeader } from '@/src/components/TeamHeader';
 import { CollectionSearch } from '@/src/components/CollectionSearch';
@@ -75,7 +74,7 @@ type Row =
   | { kind: 'stickers'; key: string; items: Sticker[] };
 
 export default function CollectionScreen() {
-  const { session, profile } = useAuth();
+  const { session, profile, loading: authLoading } = useAuth();
   const userId = session?.user.id;
   const t = useTheme();
   const insets = useSafeAreaInsets();
@@ -190,7 +189,10 @@ export default function CollectionScreen() {
 
   const load = useCallback(async () => {
     if (!userId) {
-      setLoading(false);
+      // Auth ainda resolvendo — isto NÃO é erro. Mantém o spinner (o estado
+      // `loading` continua true); quando o userId chegar, o efeito re-roda o
+      // load. Sem isto, a tela caía direto no "não conseguimos carregar o
+      // álbum" só porque a sessão ainda estava subindo.
       setRefreshing(false);
       return;
     }
@@ -256,24 +258,6 @@ export default function CollectionScreen() {
     loadAchievements(userId).then(setUnlockedAchievements).catch(() => {});
   }, [userId]);
 
-  // Pré-fetcha em background os GIFs dos top players que o user ainda não tem.
-  // Roda uma vez por sessão, depois da primeira load. expo-image cuida do
-  // cache disco — URLs já baixadas não fazem request de novo.
-  const prefetchedRef = useRef(false);
-  useEffect(() => {
-    if (loading || prefetchedRef.current || stickers.length === 0) return;
-    prefetchedRef.current = true;
-    const urls: string[] = [];
-    for (const s of stickers) {
-      if ((qtyMap[s.id] ?? 0) > 0) continue;
-      const url = getPlayerGifUrl(s.team_code, s.number);
-      if (url) urls.push(url);
-    }
-    if (urls.length > 0) {
-      ExpoImage.prefetch(urls, 'memory-disk').catch(() => {});
-    }
-  }, [loading, stickers, qtyMap]);
-
   async function bumpQty(sticker: Sticker, delta: number) {
     if (!userId) return;
     const current = qtyMap[sticker.id] ?? 0;
@@ -300,10 +284,6 @@ export default function CollectionScreen() {
       cardMode === 'modal' &&
       hasPlayerGif(sticker.team_code, sticker.number)
     ) {
-      const gifUrl = getPlayerGifUrl(sticker.team_code, sticker.number);
-      if (gifUrl) {
-        ExpoImage.prefetch(gifUrl, 'memory-disk').catch(() => {});
-      }
       // Se essa figurinha completa a coleção de top players (43 com GIF),
       // dispara a conquista secreta em vez do GIF normal
       const isEliteUnlock =
@@ -421,7 +401,7 @@ export default function CollectionScreen() {
     return { have, dup, missing, total: stickers.length, pct };
   }, [stickers, qtyMap]);
 
-  if (loading && !stickers.length) {
+  if ((loading || authLoading) && !stickers.length) {
     return (
       <View style={[styles.center, { backgroundColor: t.bg }]}>
         <ActivityIndicator />
@@ -487,7 +467,7 @@ export default function CollectionScreen() {
         renderItem={({ item }) => {
           if (item.kind === 'hero') {
             return (
-              <CollectionHeader title="Coleção" subtitle="Álbum da Copa do Mundo 2026™" />
+              <CollectionHeader title="Coleção" />
             );
           }
           if (item.kind === 'stats') {

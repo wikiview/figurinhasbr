@@ -95,21 +95,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Cinto de segurança: jamais deixe o app preso no spinner inicial.
     // Cobre o cold-start raro em que getSession() / AsyncStorage não resolvem
-    // (visto em RN quando o storage está bloqueado no boot).
+    // (visto em RN quando o storage está bloqueado no boot). 15s dá folga pro
+    // refresh de token numa rede lenta antes de desistir e cair no login.
     const safetyTimer = setTimeout(() => {
       if (!cancelled) setLoading(false);
-    }, 8000);
+    }, 15000);
 
     (async () => {
       try {
-        const sessionResult = await Promise.race([
-          supabase.auth.getSession(),
-          new Promise<{ data: { session: Session | null } }>((resolve) =>
-            setTimeout(() => resolve({ data: { session: null } }), 5000),
-          ),
-        ]);
+        // Sem corrida com timeout: deixamos o getSession() terminar. Se o token
+        // salvo está expirado, ele faz um refresh de rede que pode levar alguns
+        // segundos no cold start — abortar isso cedo (com um timeout que
+        // resolvia `session: null`) jogava o usuário pra tela de login mesmo
+        // tendo uma sessão válida. O safetyTimer acima cobre o boot travado.
+        const { data } = await supabase.auth.getSession();
         if (cancelled) return;
-        const s = sessionResult.data.session;
+        const s = data.session;
         setSession(s);
         sessionRef.current = s;
         try {

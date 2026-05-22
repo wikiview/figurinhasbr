@@ -1,4 +1,5 @@
 import 'react-native-url-polyfill/auto';
+import { AppState } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
 import Constants from 'expo-constants';
@@ -36,3 +37,18 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     detectSessionInUrl: false,
   },
 });
+
+// `autoRefreshToken` sozinho não basta no React Native: o iOS suspende os
+// timers JS enquanto o app fica em background, então o refresh do token não
+// dispara de forma confiável ao voltar — e a sessão acaba caindo. O listener de
+// AppState pausa o auto-refresh em background e o retoma no foreground. É o
+// padrão recomendado pelo Supabase para apps React Native.
+if (isRuntime) {
+  AppState.addEventListener('change', (state) => {
+    if (state === 'active') {
+      supabase.auth.startAutoRefresh();
+    } else {
+      supabase.auth.stopAutoRefresh();
+    }
+  });
+}

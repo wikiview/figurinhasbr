@@ -11,7 +11,7 @@
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
     "seed:stickers": "tsx scripts/seed-stickers.ts",
-    "upload:gifs": "tsx scripts/upload-player-gifs.ts"
+    "convert:gifs": "tsx scripts/convert-player-gifs.ts"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",

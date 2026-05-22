@@ -29,7 +29,7 @@ function sectionKey(s: Sticker): { key: string; name: string } {
     const n = parseInt(s.number, 10);
     if (n <= 4) return { key: 'COPA', name: 'Copa 2026' };
     if (n <= 8) return { key: 'SEDES', name: 'Bola e Sedes' };
-    return { key: 'MUSEU', name: 'Museu FIFA' };
+    return { key: 'MUSEU', name: 'Museu' };
   }
   if (code === 'EXTRA') return { key: 'EXTRA', name: 'Esmaltadas' };
   if (code === 'CC') return { key: 'CC', name: 'Coca-Cola' };

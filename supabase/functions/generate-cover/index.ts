@@ -508,37 +508,14 @@ serve(async (req: Request) => {
 
     const imageB64 = attempt.imageB64;
 
-    // Decodifica e salva no Storage
-    const binary = Uint8Array.from(atob(imageB64), (c) => c.charCodeAt(0));
-    const filename = `${userId}/cover-${Date.now()}.png`;
-    const { error: upErr } = await supabase.storage
-      .from('covers')
-      .upload(filename, binary, { contentType: 'image/png', upsert: true });
-    if (upErr) {
-      return new Response(
-        JSON.stringify({ error: 'upload_failed', detail: upErr.message }),
-        { status: 500, headers: { ...CORS, 'content-type': 'application/json' } },
-      );
-    }
+    // A capa NÃO vai mais pro Storage. É devolvida em base64 na resposta e o
+    // app a salva no FileSystem do device (ver src/lib/covers.ts) — isso zera o
+    // egress e o armazenamento de capas no Supabase. A galeria também passou a
+    // ser local, então a tabela `user_covers` deixou de ser usada.
 
-    const { data: pub } = supabase.storage.from('covers').getPublicUrl(filename);
-    const cover_url = pub.publicUrl;
-
-    // Insere na galeria (FIFO trigger garante cap de 10 por usuário).
-    const { error: galleryErr } = await supabase
-      .from('user_covers')
-      .insert({ user_id: userId, url: cover_url, variant });
-    if (galleryErr) {
-      // Não falha a request — a capa foi gerada e salva. Só logamos.
-      console.warn('[generate-cover:gallery_insert_fail]', galleryErr.message);
-    }
-
-    // Atualiza a capa ativa no profile (a nova capa vira a atual).
-    // Pra variante 'elite' também incrementa o contador — é o que cumpre a cota
-    // de 1 grátis por free user (Premium não é limitado mas o contador também sobe;
-    // como o gate só olha o contador pra free users, isso é inerte pra Premium).
+    // O profile ainda guarda o time favorito (usado pra bandeira no app) e o
+    // contador anti-fraude da cota Elite — ambos precisam ficar no servidor.
     const profileUpdate: Record<string, unknown> = {
-      cover_url,
       favorite_team_code: team_code,
       updated_at: new Date().toISOString(),
     };
@@ -550,17 +527,10 @@ serve(async (req: Request) => {
       .update(profileUpdate)
       .eq('id', userId);
 
-    // Conta o tamanho atual da galeria pra resposta.
-    const { count: galleryCount } = await supabase
-      .from('user_covers')
-      .select('id', { count: 'exact', head: true })
-      .eq('user_id', userId);
-
     return new Response(
       JSON.stringify({
-        cover_url,
+        image_base64: imageB64,
         variant,
-        gallery_count: galleryCount ?? null,
         used_style_ref: usedStyleRef,
       }),
       { status: 200, headers: { ...CORS, 'content-type': 'application/json' } },

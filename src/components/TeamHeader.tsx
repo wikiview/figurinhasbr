@@ -15,7 +15,7 @@ type Props = {
 };
 
 const SECTION_NAMES: Record<string, string> = {
-  FWC: 'Especiais (FIFA)',
+  FWC: 'Especiais',
   EXTRA: 'Esmaltadas (Bronze, Prata, Ouro)',
   CC: 'Coleção Coca-Cola',
 };

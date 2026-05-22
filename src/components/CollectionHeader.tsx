@@ -10,7 +10,7 @@ const HERO = require('@/assets/images/wc-hero.png');
 // e termina com fade pro fundo do app.
 const HEADER_VISIBLE_HEIGHT = 160;
 
-export function CollectionHeader({ title, subtitle }: { title: string; subtitle: string }) {
+export function CollectionHeader({ title, subtitle }: { title: string; subtitle?: string }) {
   const insets = useSafeAreaInsets();
   const totalHeight = HEADER_VISIBLE_HEIGHT + insets.top;
 
@@ -55,7 +55,7 @@ function Overlay({
   topInset,
 }: {
   title: string;
-  subtitle: string;
+  subtitle?: string;
   topInset: number;
 }) {
   return (
@@ -71,7 +71,7 @@ function Overlay({
           e respiram com a status bar. Limitados a 60% da largura pra não invadir a taça. */}
       <View style={{ flex: 1, justifyContent: 'center', maxWidth: '60%' }}>
         <Text style={styles.title}>{title}</Text>
-        <Text style={styles.subtitle}>{subtitle}</Text>
+        {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
       </View>
     </View>
   );

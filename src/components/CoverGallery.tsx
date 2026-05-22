@@ -1,6 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
-  ActionSheetIOS,
   ActivityIndicator,
   Alert,
   Dimensions,
@@ -28,22 +27,17 @@ import { Image } from 'expo-image';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as FileSystem from 'expo-file-system/legacy';
 import * as MediaLibrary from 'expo-media-library';
-import { useAuth } from '@/src/providers/AuthProvider';
-import { supabase } from '@/src/lib/supabase';
 import { useTheme } from '@/src/hooks/useTheme';
 import { useParallaxTilt } from '@/src/hooks/useParallaxTilt';
+import {
+  useCovers,
+  setActiveCover,
+  deleteCover as removeCover,
+  type LocalCover,
+  type CoverVariant,
+} from '@/src/lib/covers';
 import { CoverCreator } from '@/src/components/CoverCreator';
-
-type CoverVariant = 'standard' | 'elite';
-
-export type CoverRow = {
-  id: string;
-  url: string;
-  variant: CoverVariant;
-  created_at: string;
-};
 
 /** Posição+tamanho do elemento de origem na tela (medido via measureInWindow). */
 export type OriginRect = {
@@ -64,7 +58,7 @@ type Props = {
   initialCreatorVariant?: CoverVariant;
 };
 
-const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
+const { width: SCREEN_W } = Dimensions.get('window');
 
 // Layout estilo iPhone Photos: capa ATUAL grande, ocupando quase a tela toda;
 // capas antigas viram thumbs bem pequenos embaixo.
@@ -110,11 +104,9 @@ export function CoverGallery({
 }: Props) {
   const t = useTheme();
   const insets = useSafeAreaInsets();
-  const { session, profile, refreshProfile } = useAuth();
+  const { active, items, loading } = useCovers();
 
   const [mounted, setMounted] = useState(false);
-  const [covers, setCovers] = useState<CoverRow[]>([]);
-  const [loading, setLoading] = useState(true);
   const [creatorOpen, setCreatorOpen] = useState(false);
   const [creatorVariant, setCreatorVariant] = useState<CoverVariant>(initialCreatorVariant);
   // Controla quando o sheen holographic pode aparecer — só depois que a Image
@@ -142,23 +134,6 @@ export function CoverGallery({
   const heroOpacity = useSharedValue(originRect ? 1 : 0);
   const gridOpacity = useSharedValue(0);
   const gridTranslate = useSharedValue(24);
-
-  const loadCovers = useCallback(async () => {
-    if (!session?.user.id) return;
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('user_covers')
-      .select('id, url, variant, created_at')
-      .eq('user_id', session.user.id)
-      .order('created_at', { ascending: false });
-    if (error) {
-      console.warn('[CoverGallery] load fail', error.message);
-      setCovers([]);
-    } else {
-      setCovers((data ?? []) as CoverRow[]);
-    }
-    setLoading(false);
-  }, [session?.user.id]);
 
   useEffect(() => {
     if (visible) {
@@ -188,8 +163,6 @@ export function CoverGallery({
       // Grid entra com delay pequeno
       gridOpacity.value = withDelay(180, withTiming(1, { duration: 360, easing }));
       gridTranslate.value = withDelay(180, withTiming(0, { duration: 380, easing }));
-
-      loadCovers();
     } else if (mounted) {
       // Saída — reverso da animação
       const easing = Easing.bezier(0.22, 1, 0.36, 1);
@@ -229,22 +202,17 @@ export function CoverGallery({
     transform: [{ translateY: gridTranslate.value }],
   }));
 
-  // Hero = capa ATIVA do profile (não a mais recente). Fallback pra mais recente
-  // se cover_url estiver null ou apontar pra URL que não está mais na galeria.
-  const currentUrl = profile?.cover_url ?? null;
-  const heroCover =
-    (currentUrl && covers.find((c) => c.url === currentUrl)) ||
-    covers[0] ||
-    null;
+  // Hero = capa ativa do store local; o grid mostra as demais.
+  const heroCover = active;
   const otherCovers = heroCover
-    ? covers.filter((c) => c.id !== heroCover.id)
-    : covers;
+    ? items.filter((c) => c.id !== heroCover.id)
+    : items;
 
   // Reset estado do load quando trocar de capa hero — força o sheen a esperar
   // a nova Image carregar antes de aparecer.
   useEffect(() => {
     setHeroImageLoaded(false);
-  }, [heroCover?.url]);
+  }, [heroCover?.uri]);
 
   // Tilt parallax — só ativo quando o hero é Elite.
   // scale: 1.15 dá uma "margem visual" pra cobrir o bound mesmo em tilt extremo
@@ -269,20 +237,11 @@ export function CoverGallery({
     };
   });
 
-  async function setAsCover(url: string) {
-    if (!session?.user.id) return;
-    const { error } = await supabase
-      .from('profiles')
-      .update({ cover_url: url, updated_at: new Date().toISOString() })
-      .eq('id', session.user.id);
-    if (error) {
-      Alert.alert('Erro', error.message);
-      return;
-    }
-    // Anima o swap: a capa selecionada sobe pro slot hero, a antiga desce pro grid.
-    // LayoutAnimation aplica no próximo re-render automaticamente.
+  async function setAsCover(id: string) {
+    // Anima o swap: a capa selecionada sobe pro slot hero, a antiga desce pro
+    // grid. LayoutAnimation aplica no próximo re-render automaticamente.
     LayoutAnimation.configureNext(SWAP_LAYOUT_ANIM);
-    await refreshProfile();
+    await setActiveCover(id);
   }
 
   async function downloadHero() {
@@ -296,10 +255,8 @@ export function CoverGallery({
         );
         return;
       }
-      const filename = `capa-${Date.now()}.png`;
-      const filePath = `${FileSystem.cacheDirectory}${filename}`;
-      const { uri } = await FileSystem.downloadAsync(heroCover.url, filePath);
-      await MediaLibrary.saveToLibraryAsync(uri);
+      // A capa já é um arquivo local — salva direto na galeria do iPhone.
+      await MediaLibrary.saveToLibraryAsync(heroCover.uri);
       Alert.alert('Salvou', 'Capa salva na galeria do seu iPhone.');
     } catch (e: any) {
       Alert.alert('Erro ao salvar', e?.message ?? 'Tenta de novo em alguns segundos.');
@@ -311,37 +268,18 @@ export function CoverGallery({
     confirmDelete(heroCover);
   }
 
-  async function deleteCover(row: CoverRow) {
-    if (!session?.user.id) return;
-    const { error } = await supabase
-      .from('user_covers')
-      .delete()
-      .eq('id', row.id)
-      .eq('user_id', session.user.id);
-    if (error) {
-      Alert.alert('Erro', error.message);
-      return;
-    }
-    // Se essa era a capa ativa, limpa pra não mostrar URL morta
-    if (profile?.cover_url === row.url) {
-      await supabase
-        .from('profiles')
-        .update({ cover_url: null, updated_at: new Date().toISOString() })
-        .eq('id', session.user.id);
-      await refreshProfile();
-    }
-    loadCovers();
+  async function deleteCover(row: LocalCover) {
+    // removeCover apaga o arquivo, atualiza o índice e reabre a capa ativa.
+    await removeCover(row.id);
   }
 
-  function onPressCover(row: CoverRow) {
+  function onPressCover(row: LocalCover) {
     // Toque numa capa do grid = define ela como capa atual direto.
-    // Delete e download saíram pra botões no header.
-    const isActive = profile?.cover_url === row.url;
-    if (isActive) return;
-    setAsCover(row.url);
+    if (row.id === heroCover?.id) return;
+    setAsCover(row.id);
   }
 
-  function confirmDelete(row: CoverRow) {
+  function confirmDelete(row: LocalCover) {
     Alert.alert('Excluir capa', 'Tem certeza? Essa ação não desfaz.', [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Excluir', style: 'destructive', onPress: () => deleteCover(row) },
@@ -420,7 +358,7 @@ export function CoverGallery({
               style={StyleSheet.absoluteFill}
               android_ripple={{ color: 'rgba(255,255,255,0.12)' }}>
               <Image
-                source={{ uri: heroCover.url }}
+                source={{ uri: heroCover.uri }}
                 style={styles.heroImage}
                 contentFit="cover"
                 transition={120}
@@ -477,7 +415,7 @@ export function CoverGallery({
             </LinearGradient>
           </View>
         )}
-        {heroCover && profile?.cover_url === heroCover.url && (
+        {heroCover && (
           <View style={[styles.activePill, { backgroundColor: t.primary }]} pointerEvents="none">
             <Ionicons name="checkmark" size={11} color={t.primaryText} />
             <Text style={[styles.activePillText, { color: t.primaryText }]}>Capa atual</Text>
@@ -496,7 +434,7 @@ export function CoverGallery({
           <View style={styles.center}>
             <ActivityIndicator color={t.primary} />
           </View>
-        ) : covers.length === 0 ? (
+        ) : items.length === 0 ? (
           <View style={[styles.emptyBox, { paddingBottom: insets.bottom + 40 }]}>
             <View style={[styles.emptyIcon, { backgroundColor: t.surfaceAlt }]}>
               <Ionicons name="images-outline" size={48} color={t.textFaint} />
@@ -531,7 +469,7 @@ export function CoverGallery({
             ListHeaderComponent={
               <Text style={[styles.gridLabel, { color: t.textMuted }]}>
                 {otherCovers.length > 0
-                  ? `${covers.length}/10 capas`
+                  ? `${items.length}/10 capas`
                   : 'Crie mais capas. Limite 10.'}
               </Text>
             }
@@ -557,7 +495,6 @@ export function CoverGallery({
                   </Pressable>
                 );
               }
-              const isActive = profile?.cover_url === item.url;
               return (
                 <Pressable
                   onPress={() => onPressCover(item)}
@@ -566,19 +503,14 @@ export function CoverGallery({
                     {
                       width: GRID_CARD_W,
                       height: GRID_CARD_H,
-                      borderColor:
-                        item.variant === 'elite'
-                          ? '#facc15'
-                          : isActive
-                          ? t.primary
-                          : t.border,
-                      borderWidth: item.variant === 'elite' || isActive ? 2 : 1,
+                      borderColor: item.variant === 'elite' ? '#facc15' : t.border,
+                      borderWidth: item.variant === 'elite' ? 2 : 1,
                       backgroundColor: t.surface,
                     },
                     pressed && { opacity: 0.85 },
                   ]}>
                   <Image
-                    source={{ uri: item.url }}
+                    source={{ uri: item.uri }}
                     style={styles.gridImage}
                     contentFit="cover"
                     transition={250}
@@ -594,13 +526,6 @@ export function CoverGallery({
                       </LinearGradient>
                     </View>
                   )}
-                  {isActive && (
-                    <View
-                      style={[styles.gridActivePill, { backgroundColor: t.primary }]}
-                      pointerEvents="none">
-                      <Ionicons name="checkmark" size={10} color={t.primaryText} />
-                    </View>
-                  )}
                 </Pressable>
               );
             }}
@@ -612,9 +537,6 @@ export function CoverGallery({
         visible={creatorOpen}
         initialVariant={creatorVariant}
         onClose={() => setCreatorOpen(false)}
-        onCreated={() => {
-          loadCovers();
-        }}
       />
     </Modal>
   );
@@ -823,6 +745,3 @@ const styles = StyleSheet.create({
 
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 });
-
-// Re-export SCREEN_H pra eventual uso externo
-export { SCREEN_H };

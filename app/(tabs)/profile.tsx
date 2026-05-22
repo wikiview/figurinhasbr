@@ -385,6 +385,10 @@ export default function ProfileScreen() {
           <Text style={styles.signOutText}>Sair</Text>
         </Pressable>
 
+        <Text style={[styles.disclaimer, { color: t.textFaint }]}>
+          App não oficial. Sem afiliação, patrocínio ou endosso da FIFA ou da Panini.
+        </Text>
+
         <PaywallModal visible={paywallOpen} onClose={() => setPaywallOpen(false)} />
       </ScrollView>
     </KeyboardAvoidingView>
@@ -588,6 +592,12 @@ const styles = StyleSheet.create({
 
   signOut: { marginTop: 32, alignItems: 'center' },
   signOutText: { color: '#ef4444', fontWeight: '700' },
+  disclaimer: {
+    fontSize: 11,
+    textAlign: 'center',
+    marginTop: 24,
+    lineHeight: 15,
+  },
 
   achievementBadge: {
     flexDirection: 'row',

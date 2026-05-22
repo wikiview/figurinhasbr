@@ -14,7 +14,7 @@ import { Image } from 'expo-image';
 import * as Haptics from 'expo-haptics';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import type { Sticker } from '@/src/lib/types';
-import { getPlayerGifUrl } from '@/src/data/player-gifs';
+import { getPlayerGif } from '@/src/data/player-gifs';
 import { ACHIEVEMENT_META } from '@/src/lib/achievements';
 
 const PHASE1_MS = 1700; // GIF grande, sozinho
@@ -178,7 +178,7 @@ export function AchievementCelebration({ sticker, onClose }: Props) {
 
   if (!mounted) return null;
 
-  const gifUrl = getPlayerGifUrl(mounted.team_code, mounted.number);
+  const gif = getPlayerGif(mounted.team_code, mounted.number);
   const meta = ACHIEVEMENT_META.elite_collector;
 
   return (
@@ -216,13 +216,11 @@ export function AchievementCelebration({ sticker, onClose }: Props) {
         {/* GIF do jogador */}
         <Animated.View style={[styles.gifWrap, gifStyle]} pointerEvents="none">
           <View style={styles.gifFrame}>
-            {gifUrl ? (
+            {gif ? (
               <Image
-                source={{ uri: gifUrl }}
+                source={gif}
                 style={styles.gif}
                 contentFit="cover"
-                cachePolicy="memory-disk"
-                priority="high"
               />
             ) : (
               <View style={[styles.gif, styles.gifFallback]}>

@@ -11,7 +11,7 @@ import { Image } from 'expo-image';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import type { Sticker } from '@/src/lib/types';
-import { getPlayerGifUrl } from '@/src/data/player-gifs';
+import { getPlayerGif } from '@/src/data/player-gifs';
 import { useTheme } from '@/src/hooks/useTheme';
 
 const GIF_SIZE = 280;
@@ -24,16 +24,12 @@ type Props = {
 export function PlayerCelebration({ sticker, onClose }: Props) {
   const t = useTheme();
   const [mounted, setMounted] = useState<Sticker | null>(sticker);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [loaded, setLoaded] = useState(false);
   const opacity = useSharedValue(0);
   const scale = useSharedValue(0.6);
 
   useEffect(() => {
     if (sticker) {
       setMounted(sticker);
-      setLoadError(null);
-      setLoaded(false);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
       opacity.value = withTiming(1, { duration: 140 });
       scale.value = withSpring(1, { damping: 14, stiffness: 220, mass: 0.7 });
@@ -53,8 +49,8 @@ export function PlayerCelebration({ sticker, onClose }: Props) {
 
   if (!mounted) return null;
 
-  const gifUrl = getPlayerGifUrl(mounted.team_code, mounted.number);
-  if (!gifUrl) return null;
+  const gif = getPlayerGif(mounted.team_code, mounted.number);
+  if (!gif) return null;
 
   return (
     <Modal transparent visible animationType="none" onRequestClose={onClose}>
@@ -73,33 +69,11 @@ export function PlayerCelebration({ sticker, onClose }: Props) {
 
           <View style={[styles.gifFrame, { borderColor: t.shinyBorder }]}>
             <Image
-              source={{ uri: gifUrl }}
+              source={gif}
               style={styles.gif}
               contentFit="cover"
               transition={120}
-              cachePolicy="memory-disk"
-              priority="high"
-              onLoad={() => setLoaded(true)}
-              onError={(e: any) => {
-                const msg = e?.error ?? e?.nativeEvent?.error ?? 'erro ao carregar';
-                console.warn('[PlayerCelebration] gif fail', gifUrl, msg);
-                setLoadError(String(msg));
-              }}
             />
-            {!loaded && !loadError && (
-              <View style={styles.gifOverlay} pointerEvents="none">
-                <Ionicons name="cloud-download-outline" size={40} color="#94a3b8" />
-                <Text style={styles.gifOverlayText}>Carregando…</Text>
-              </View>
-            )}
-            {loadError && (
-              <View style={styles.gifOverlay} pointerEvents="none">
-                <Ionicons name="alert-circle" size={40} color="#f87171" />
-                <Text style={styles.gifOverlayText} numberOfLines={3}>
-                  {loadError}
-                </Text>
-              </View>
-            )}
           </View>
 
           <Text style={styles.player} numberOfLines={2}>

@@ -57,7 +57,7 @@ type Row =
   | { kind: 'sticker'; sticker: Sticker };
 
 export default function CadernetaScreen() {
-  const { session, profile } = useAuth();
+  const { session, profile, loading: authLoading } = useAuth();
   const userId = session?.user.id;
   const t = useTheme();
   const insets = useSafeAreaInsets();
@@ -85,38 +85,58 @@ export default function CadernetaScreen() {
   }, [userId]);
 
   const load = useCallback(async () => {
-    // Sem userId (auth ainda subindo ou sem sessão) — libera UI mesmo assim
-    // pra evitar spinner infinito.
     if (!userId) {
-      setLoading(false);
+      // Auth ainda resolvendo — isto NÃO é erro. Mantém o spinner; quando o
+      // userId chegar, o efeito re-roda o load.
       setRefreshing(false);
       return;
     }
-    try {
-      const result = await Promise.race([
-        Promise.all([
-          supabase.from('stickers').select('*').order('display_order'),
-          supabase.from('user_stickers').select('sticker_id,qty').eq('user_id', userId),
-        ]),
-        new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('load timeout')), 10000),
-        ),
-      ]);
-      const [{ data: sList, error: e1 }, { data: usList, error: e2 }] = result;
-      if (e1) console.warn('[caderneta:load] stickers', e1.message);
-      if (e2) console.warn('[caderneta:load] user_stickers', e2.message);
-      setStickers((sList ?? []) as Sticker[]);
+
+    // Retry com backoff: cobre o cold-start onde a 1ª request HTTP falha em
+    // silêncio e volta vazia. `stickers` nunca deve estar vazia em prod, então
+    // tratamos resposta vazia como falha transitória e tentamos de novo.
+    const RETRY_DELAYS_MS = [0, 800, 2000];
+    let loadedStickers: Sticker[] | null = null;
+    let loadedUserStickers: any[] = [];
+
+    for (let attempt = 0; attempt < RETRY_DELAYS_MS.length; attempt++) {
+      if (RETRY_DELAYS_MS[attempt] > 0) {
+        await new Promise((r) => setTimeout(r, RETRY_DELAYS_MS[attempt]));
+      }
+      try {
+        const result = await Promise.race([
+          Promise.all([
+            supabase.from('stickers').select('*').order('display_order'),
+            supabase.from('user_stickers').select('sticker_id,qty').eq('user_id', userId),
+          ]),
+          new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error('load timeout')), 10000),
+          ),
+        ]);
+        const [{ data: sList, error: e1 }, { data: usList, error: e2 }] = result;
+        if (e1) console.warn('[caderneta:load] stickers attempt %d:', attempt + 1, e1.message);
+        if (e2) console.warn('[caderneta:load] user_stickers attempt %d:', attempt + 1, e2.message);
+        if (sList && sList.length > 0) {
+          loadedStickers = sList as Sticker[];
+          loadedUserStickers = usList ?? [];
+          break;
+        }
+        console.warn('[caderneta:load] empty stickers on attempt %d — retrying', attempt + 1);
+      } catch (e) {
+        console.warn('[caderneta:load] attempt %d failed:', attempt + 1, e);
+      }
+    }
+
+    if (loadedStickers) {
+      setStickers(loadedStickers);
       const map: Record<string, number> = {};
-      (usList ?? []).forEach((r: any) => {
+      loadedUserStickers.forEach((r: any) => {
         map[r.sticker_id] = r.qty;
       });
       setQtyMap(map);
-    } catch (e) {
-      console.warn('[caderneta:load] failed', e);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
     }
+    setLoading(false);
+    setRefreshing(false);
   }, [userId]);
 
   useEffect(() => {
@@ -290,7 +310,7 @@ export default function CadernetaScreen() {
     }
   }
 
-  if (loading && !stickers.length) {
+  if ((loading || authLoading) && !stickers.length) {
     return (
       <View style={[styles.center, { backgroundColor: t.bg }]}>
         <ActivityIndicator />
