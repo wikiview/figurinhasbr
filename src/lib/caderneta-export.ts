@@ -129,12 +129,13 @@ const TEAM_PAGES: Record<string, string> = {
   ARG: '82-83', ALG: '84-85', AUT: '86-87', JOR: '88-89',
   POR: '90-91', COD: '92-93', UZB: '94-95', COL: '96-97',
   ENG: '98-99', CRO: '100-101', GHA: '102-103', PAN: '104-105',
-  EXTRA: '110',
+  EXTRA: '110', CC: '111',
 };
 
 const SECTION_NAMES: Record<string, string> = {
   FWC: 'Especiais',
   EXTRA: 'Esmaltadas (Bronze, Prata, Ouro)',
+  CC: 'CC',
 };
 
 function teamLabel(code: string, fallback: string): string {

@@ -20,7 +20,7 @@ type Props = {
   qtyMap: Record<string, number>;
 };
 
-const SPECIAL_KEYS = new Set(['INTRO', 'COPA', 'SEDES', 'MUSEU', 'EXTRA']);
+const SPECIAL_KEYS = new Set(['INTRO', 'COPA', 'SEDES', 'MUSEU', 'EXTRA', 'CC']);
 
 function sectionKey(s: Sticker): { key: string; name: string } {
   const code = s.team_code ?? '';
@@ -32,6 +32,7 @@ function sectionKey(s: Sticker): { key: string; name: string } {
     return { key: 'MUSEU', name: 'História' };
   }
   if (code === 'EXTRA') return { key: 'EXTRA', name: 'Esmaltadas' };
+  if (code === 'CC') return { key: 'CC', name: 'CC' };
   return { key: code, name: s.team };
 }
 
@@ -91,7 +92,7 @@ export function OverviewModal({ visible, onClose, stickers, qtyMap }: Props) {
     specials.forEach((s) =>
       list.push({
         id: `sec-${s.key}`,
-        icon: s.key === 'EXTRA' ? 'medal' : 'trophy',
+        icon: s.key === 'EXTRA' ? 'medal' : s.key === 'CC' ? 'star' : 'trophy',
         label: `${s.name} completo`,
         unlocked: s.complete,
       }),
@@ -242,7 +243,7 @@ function SectionRow({
           <Image source={{ uri: flagSrc }} style={styles.rowFlag} contentFit="cover" />
         ) : (
           <MaterialCommunityIcons
-            name={section.key === 'EXTRA' ? 'medal' : 'trophy'}
+            name={section.key === 'EXTRA' ? 'medal' : section.key === 'CC' ? 'star' : 'trophy'}
             size={18}
             color="#facc15"
           />

@@ -2,10 +2,10 @@ import type { StickerType } from '@/src/lib/types';
 import { PLAYERS } from './players';
 
 /**
- * Catálogo do álbum de coleção — 984 figurinhas.
+ * Catálogo do álbum de coleção — 998 figurinhas.
  *
  * Estrutura:
- *   - Verso usa `<COD> <N>` (ex: "KOR 18", "FWC 14")
+ *   - Verso usa `<COD> <N>` (ex: "KOR 18", "FWC 14", "CC 7")
  *   - Por seleção: 1 = escudo, 13 = foto da seleção, demais = jogadores
  *   - 48 seleções × 20 = 960
  *
@@ -15,8 +15,9 @@ import { PLAYERS } from './players';
  *   - 48 seleções × 20 = 960 (pages 8-105)
  *   - FWC9-FWC19 (História da Copa, pages 106-109)
  *   - REGU, BRON, PRAT, OURO (Extra Stickers, page 110)
+ *   - CC1-CC14 (Extras CC, page 111)
  *
- * Total: 1 + 8 + 960 + 11 + 4 = 984
+ * Total: 1 + 8 + 960 + 11 + 4 + 14 = 998
  *
  * Ordem dos países segue a ordem do álbum (não alfabética).
  */
@@ -206,6 +207,17 @@ export function buildSeed(): SeedSticker[] {
       player_name: e.name,
       type: 'legend',
       is_shiny: e.shiny,
+      display_order: order++,
+    });
+  }
+
+  // ===== CC 1-14: Extras (page 111) =====
+  for (let i = 1; i <= 14; i++) {
+    out.push({
+      id: `CC-${i}`, number: String(i),
+      team: 'CC', team_code: 'CC',
+      player_name: `CC ${i}`,
+      type: 'special', is_shiny: true,
       display_order: order++,
     });
   }

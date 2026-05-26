@@ -164,6 +164,14 @@ export function buildExportText(
     lines.push('');
   }
 
+  // ===== Extras CC =====
+  const cc = bySection.get('CC') ?? [];
+  if (cc.length) {
+    lines.push('*CC* · pg. 111');
+    lines.push(...chunkLines(cc.map(label)));
+    lines.push('');
+  }
+
   lines.push('— gerado pelo app Figurinha 📒⚽');
   return lines.join('\n');
 }

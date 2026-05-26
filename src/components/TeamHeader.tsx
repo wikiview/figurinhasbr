@@ -17,11 +17,13 @@ type Props = {
 const SECTION_NAMES: Record<string, string> = {
   FWC: 'Especiais',
   EXTRA: 'Esmaltadas (Bronze, Prata, Ouro)',
+  CC: 'CC',
 };
 
-const SECTION_ICONS: Record<string, 'trophy' | 'medal'> = {
+const SECTION_ICONS: Record<string, 'trophy' | 'medal' | 'star'> = {
   FWC: 'trophy',
   EXTRA: 'medal',
+  CC: 'star',
 };
 
 export function TeamHeader({
