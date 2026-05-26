@@ -1,6 +1,6 @@
 # Política de Privacidade — Figurinhas Copa 2026
 
-**Última atualização:** 16 de maio de 2026
+**Última atualização:** 26 de maio de 2026
 
 ## 1. Quem somos
 
@@ -20,6 +20,7 @@ Ao usar o Aplicativo, você concorda com as práticas descritas aqui.
 | Senha (armazenada como hash) | Autenticação | Execução de contrato |
 | Nome de exibição (opcional) | Perfil público no app | Consentimento |
 | Cidade (opcional) | Matching geográfico para trocas presenciais | Consentimento |
+| Número de WhatsApp (opcional) | Permitir que outros usuários entrem em contato para combinar trocas via WhatsApp | Consentimento |
 | Lista de figurinhas que você possui ou procura | Funcionalidade central do app | Execução de contrato |
 
 ### 2.2 Informações coletadas automaticamente
@@ -56,6 +57,7 @@ Compartilhamos seus dados **somente** com prestadores que viabilizam o funcionam
 | **Google LLC (AdMob)** | Exibição de anúncios | https://policies.google.com/privacy |
 | **Apple Inc.** | Processamento de compras in-app (apenas iOS) | https://www.apple.com/legal/privacy/ |
 | **Google LLC (Play Billing)** | Processamento de compras in-app (apenas Android) | https://policies.google.com/privacy |
+| **Meta Platforms, Inc.** (WhatsApp) | Abertura de conversa via link `wa.me` quando você toca o botão de WhatsApp em um match de troca. O número compartilhado é o do outro usuário que cadastrou WhatsApp, não o seu (a menos que outro usuário toque o botão para contatar você). | https://www.whatsapp.com/legal/privacy-policy |
 
 **Não vendemos seus dados pessoais.** Não compartilhamos com fins de marketing fora da nossa relação direta com você.
 
