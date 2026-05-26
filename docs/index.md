@@ -8,6 +8,7 @@ App fan-made pra colecionar as figurinhas da Copa do Mundo 2026 e achar gente pe
 
 - [Política de Privacidade](privacy-policy)
 - [Suporte](support)
+- [Exclusão de conta e dados](delete-account)
 
 ---
 
