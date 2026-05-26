@@ -24,7 +24,7 @@ create table if not exists public.profiles (
 create table if not exists public.stickers (
   id text primary key,                        -- ex: "BRA-04", "FWC-LOGO"
   number text not null,                       -- "04", "LOGO"
-  team text not null,                         -- "Brasil", "Argentina", "FIFA"
+  team text not null,                         -- "Brasil", "Argentina", "Especiais"
   team_code text,                             -- "BRA"
   player_name text,                           -- nome do jogador (null pra escudo/logo)
   type text not null default 'player',        -- 'player' | 'team' | 'logo' | 'legend' | 'special'

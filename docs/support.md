@@ -53,4 +53,4 @@ Olha a [Política de Privacidade](privacy-policy) pra entender exatamente o que 
 
 ## ⚠️ Aviso
 
-**Troca Figurinhas Copa 2026** é um app **independente e fan-made**, sem afiliação, patrocínio ou endosso da FIFA, da Panini ou de qualquer entidade ligada à Copa do Mundo. As marcas mencionadas pertencem aos seus respectivos donos.
+**Troca Figurinhas Copa 2026** é um app **independente e fan-made**, sem afiliação, patrocínio ou endosso de nenhuma entidade oficial relacionada à competição. As marcas mencionadas pertencem aos seus respectivos donos.

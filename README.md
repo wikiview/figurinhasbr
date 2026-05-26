@@ -1,8 +1,7 @@
-# ⚽ Figurinha — Copa do Mundo 2026
+# ⚽ Figurinha — Copa 2026
 
-App fan-made (não-oficial, sem afiliação com FIFA ou Panini) pra ajudar
-colecionadores a organizar as ~980 figurinhas da Copa do Mundo 2026 e achar
-gente perto pra trocar.
+App fan-made pra ajudar colecionadores a organizar as ~984 figurinhas do álbum
+da Copa 2026 e achar gente perto pra trocar.
 
 - Coleção: marca tenho / repetidas / faltam
 - Trocas: matching automático por cidade (quem tem repetida do que você precisa)
@@ -48,7 +47,7 @@ cp .env.example .env
 npm run seed:stickers
 ```
 
-Vai criar um placeholder das 980 figurinhas (20 especiais + 48 seleções × 20).
+Vai criar um placeholder das ~984 figurinhas (24 especiais + 48 seleções × 20).
 Quando a lista completa for divulgada, edita `src/data/stickers-seed.ts` e roda de novo (é UPSERT idempotente).
 
 ### 5. Rodando o app
@@ -77,7 +76,7 @@ src/
     types.ts                  # tipos compartilhados
   providers/AuthProvider.tsx  # context de session + profile
   components/StickerCard.tsx  # célula da grid
-  data/stickers-seed.ts       # 980 figurinhas placeholder
+  data/stickers-seed.ts       # 984 figurinhas placeholder
 
 supabase/schema.sql           # roda 1x no SQL Editor
 scripts/seed-stickers.ts      # importa o seed pro banco
@@ -88,7 +87,7 @@ scripts/seed-stickers.ts      # importa o seed pro banco
 | Tabela          | Pra que serve                                                |
 |-----------------|--------------------------------------------------------------|
 | `profiles`      | Estende `auth.users` com cidade/UF/WhatsApp (criado no signup) |
-| `stickers`      | Catálogo mestre das 980 figurinhas (id no formato `KOR-18`)  |
+| `stickers`      | Catálogo mestre das ~984 figurinhas (id no formato `KOR-18`)  |
 | `user_stickers` | Coleção de cada usuário (`qty=0` falta, `1` tem, `2+` repetida) |
 | `trade_requests`| Propostas formais (v1)                                        |
 | `trade_messages`| Chat in-app (v1)                                              |
@@ -104,7 +103,7 @@ de 7 versos lado a lado). O verso tem `KOR 18` impresso — Gemini Vision lê e
 devolve a lista de IDs.
 
 - Custo aproximado: **R$ 0,0002 por foto** (Gemini 2.0 Flash)
-- Coleção inteira (~140 fotos pra cobrir 980): **~R$ 0,03**
+- Coleção inteira (~140 fotos pra cobrir 984): **~R$ 0,03**
 - Margem absurda em cima do R$ 7,90 mensal/único
 
 Implementação:

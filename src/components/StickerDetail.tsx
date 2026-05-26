@@ -61,12 +61,11 @@ export function StickerDetail({ sticker, qty, onClose, onIncrement, onDecrement 
 
   const status: StickerStatus = qty <= 0 ? 'missing' : qty === 1 ? 'have' : 'duplicate';
   const isShiny = mounted.is_shiny;
-  const isSpecialSection = ['FWC', 'EXTRA', 'CC'].includes(mounted.team_code ?? '');
+  const isSpecialSection = ['FWC', 'EXTRA'].includes(mounted.team_code ?? '');
   const flag = isSpecialSection ? null : flagUrl(mounted.team_code ?? '', 320);
   const SECTION_LABEL: Record<string, string> = {
     FWC: 'Especiais',
     EXTRA: 'Esmaltadas',
-    CC: 'Coca-Cola',
   };
   const sectionLabel = SECTION_LABEL[mounted.team_code ?? ''] ?? mounted.team;
 
@@ -160,15 +159,9 @@ export function StickerDetail({ sticker, qty, onClose, onIncrement, onDecrement 
               <View style={[styles.crest, { backgroundColor: t.surfaceAlt, borderColor: t.border }]}>
                 {isSpecialSection ? (
                   <MaterialCommunityIcons
-                    name={
-                      mounted.team_code === 'CC'
-                        ? 'bottle-soda-classic'
-                        : mounted.team_code === 'EXTRA'
-                        ? 'medal'
-                        : 'trophy'
-                    }
+                    name={mounted.team_code === 'EXTRA' ? 'medal' : 'trophy'}
                     size={20}
-                    color={mounted.team_code === 'CC' ? '#dc2626' : '#facc15'}
+                    color="#facc15"
                   />
                 ) : flag ? (
                   <Image

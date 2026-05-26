@@ -1,10 +1,10 @@
 /**
- * Mapeamento FIFA 3-letras → ISO alpha-2 (lowercase) pra montar URLs do flagcdn.com.
- * Cobre as 48 seleções do álbum Panini Copa 2026 + extras pra futuros álbuns.
+ * Mapeamento código de país 3-letras → ISO alpha-2 (lowercase) pra montar URLs do flagcdn.com.
+ * Cobre as 48 seleções do álbum da Copa 2026 + extras pra futuros álbuns.
  *
  * Casos especiais: ENG/SCO usam subdivisões `gb-eng` e `gb-sct`.
  */
-export const FIFA_TO_ISO2: Record<string, string> = {
+export const COUNTRY_TO_ISO2: Record<string, string> = {
   // CONMEBOL
   ARG: 'ar', BRA: 'br', URU: 'uy', COL: 'co', ECU: 'ec', PAR: 'py',
   PER: 'pe', CHI: 'cl', BOL: 'bo', VEN: 've',
@@ -29,7 +29,7 @@ export const FIFA_TO_ISO2: Record<string, string> = {
 export type FlagWidth = 80 | 160 | 320;
 
 export function flagUrl(fifaCode: string, width: FlagWidth = 160): string | null {
-  const iso2 = FIFA_TO_ISO2[fifaCode];
+  const iso2 = COUNTRY_TO_ISO2[fifaCode];
   if (!iso2) return null;
   return `https://flagcdn.com/w${width}/${iso2}.png`;
 }

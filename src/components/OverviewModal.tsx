@@ -20,7 +20,7 @@ type Props = {
   qtyMap: Record<string, number>;
 };
 
-const SPECIAL_KEYS = new Set(['INTRO', 'COPA', 'SEDES', 'MUSEU', 'EXTRA', 'CC']);
+const SPECIAL_KEYS = new Set(['INTRO', 'COPA', 'SEDES', 'MUSEU', 'EXTRA']);
 
 function sectionKey(s: Sticker): { key: string; name: string } {
   const code = s.team_code ?? '';
@@ -29,10 +29,9 @@ function sectionKey(s: Sticker): { key: string; name: string } {
     const n = parseInt(s.number, 10);
     if (n <= 4) return { key: 'COPA', name: 'Copa 2026' };
     if (n <= 8) return { key: 'SEDES', name: 'Bola e Sedes' };
-    return { key: 'MUSEU', name: 'Museu' };
+    return { key: 'MUSEU', name: 'História' };
   }
   if (code === 'EXTRA') return { key: 'EXTRA', name: 'Esmaltadas' };
-  if (code === 'CC') return { key: 'CC', name: 'Coca-Cola' };
   return { key: code, name: s.team };
 }
 
@@ -92,7 +91,7 @@ export function OverviewModal({ visible, onClose, stickers, qtyMap }: Props) {
     specials.forEach((s) =>
       list.push({
         id: `sec-${s.key}`,
-        icon: s.key === 'CC' ? 'bottle-soda-classic' : s.key === 'EXTRA' ? 'medal' : 'trophy',
+        icon: s.key === 'EXTRA' ? 'medal' : 'trophy',
         label: `${s.name} completo`,
         unlocked: s.complete,
       }),
@@ -243,7 +242,7 @@ function SectionRow({
           <Image source={{ uri: flagSrc }} style={styles.rowFlag} contentFit="cover" />
         ) : (
           <MaterialCommunityIcons
-            name={section.key === 'CC' ? 'bottle-soda-classic' : section.key === 'EXTRA' ? 'medal' : 'trophy'}
+            name={section.key === 'EXTRA' ? 'medal' : 'trophy'}
             size={18}
             color="#facc15"
           />

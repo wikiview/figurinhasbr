@@ -83,7 +83,7 @@ export function CoverCreator({
   const [paywallOpen, setPaywallOpen] = useState(false);
   const [variant, setVariant] = useState<CoverVariant>(initialVariant);
   const [hasElite, setHasElite] = useState(false);
-  // Dados extras pro estilo Panini
+  // Dados extras pro estilo trading card
   const [dob, setDob] = useState('');
   const [heightM, setHeightM] = useState('');
   const [weightKg, setWeightKg] = useState('');
@@ -438,7 +438,7 @@ export function CoverCreator({
               </Pressable>
             </View>
 
-            {/* Dados extras estilo Panini (todos opcionais) */}
+            {/* Dados extras estilo trading card (todos opcionais) */}
             <View style={[styles.statsBox, { backgroundColor: t.surface, borderColor: t.border }]}>
               <Text style={[styles.statsHint, { color: t.textMuted }]}>
                 Aparecem na figurinha. Tudo opcional — o que deixar em branco a IA preenche aleatório.

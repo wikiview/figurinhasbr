@@ -13,4 +13,4 @@ App fan-made pra colecionar as figurinhas da Copa do Mundo 2026 e achar gente pe
 
 **Contato:** [heitorolial@gmail.com](mailto:heitorolial@gmail.com)
 
-App independente, sem afiliação com FIFA ou Panini.
+App independente, sem afiliação com nenhuma entidade oficial.

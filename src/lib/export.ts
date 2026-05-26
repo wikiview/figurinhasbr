@@ -145,7 +145,7 @@ export function buildExportText(
     lines.push('');
   }
 
-  // ===== Museu FIFA (FWC 9-19) =====
+  // ===== História da Copa (FWC 9-19) =====
   const museu = (bySection.get('FWC') ?? []).filter((s) => {
     const n = parseInt(s.number, 10);
     return n >= 9 && n <= 19;
@@ -161,14 +161,6 @@ export function buildExportText(
   if (extras.length) {
     lines.push('*Extra Stickers* · pg. 110');
     lines.push(...chunkLines(extras.map(label)));
-    lines.push('');
-  }
-
-  // ===== Coca-Cola =====
-  const cc = bySection.get('CC') ?? [];
-  if (cc.length) {
-    lines.push('*Coleção Coca-Cola* · pg. 111');
-    lines.push(...chunkLines(cc.map(label)));
     lines.push('');
   }
 

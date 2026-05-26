@@ -98,7 +98,7 @@ const ANATOMY_NOTE =
   `head and shoulders fully visible with a small margin above the hair and at the sides. ` +
   `Do NOT crop the top of the head. Do NOT zoom in only on the face. ` +
   `3) The portrait orientation is VERTICAL 3:4 (taller than wide), like a real collectible ` +
-  `Panini sticker. Compose accordingly — never produce a square or wide layout. `;
+  `vertical trading card. Compose accordingly — never produce a square or wide layout. `;
 
 // Crítico: o output é A FIGURINHA em si, não uma foto da figurinha. Sem mesa, sem
 // sombra de objeto físico, sem margem branca, sem "papel sobre superfície".
@@ -137,25 +137,21 @@ const ELITE_FRAMING_NOTE =
   `like a real premium trading card (think Pokémon/Magic foil card). NEVER sharp 90° corners. The ` +
   `rounded-corner shape applies to the outer edge of the gold metallic border AND to the inner photo area. `;
 
-// Crítico (legal/IP): nunca incluir logos do tournament/sticker brand (FIFA, Panini,
-// FWC2026) nem do fabricante (Adidas, Nike, Puma) nem patrocinadores.
-// O crest da federação (CBF, AFA, etc) PODE aparecer — é o que faz a figurinha
-// reconhecível como "do Brasil" sem violar trademarks do tournament.
+// Crítico (legal/IP): nunca incluir logos de torneio, fabricante, patrocinadores
+// ou qualquer wordmark/marca registrada. O crest da federação PODE aparecer no peito
+// pra ajudar a reconhecer a seleção, sem incluir nenhum outro emblema/badge.
 const LEGAL_NOTE =
   `STRICTLY DO NOT INCLUDE any of the following anywhere in the image — not on the jersey, ` +
   `not on the background, not on the banner, not in the corners, not as a watermark, ` +
   `not even partially or stylized: ` +
-  `(a) the word "PANINI" or any Panini logo/wordmark/trade dress; ` +
-  `(b) the word "FIFA" or the FIFA logo/wordmark; ` +
-  `(c) any official FIFA World Cup logo, the FWC 2026 official emblem, the official ` +
-  `World Cup Trophy silhouette, or any official tournament trademark; ` +
-  `(d) any jersey manufacturer logo (Adidas, Nike, Puma, Umbro, New Balance, etc) ` +
-  `on the chest, sleeves, or shorts; ` +
+  `(a) any tournament logo, emblem, wordmark or trade dress; ` +
+  `(b) any competition trophy or trophy silhouette; ` +
+  `(c) any sticker/album manufacturer logo or wordmark; ` +
+  `(d) any jersey manufacturer logo on the chest, sleeves, or shorts; ` +
   `(e) any commercial sponsor or kit-sponsor logo. ` +
-  `The jersey colors and the national team crest (e.g. the country's football federation ` +
-  `crest like CBF for Brazil, AFA for Argentina, etc) MAY appear on the chest — they help ` +
-  `make the player recognizable as their national team. Just don't add the FIFA badge ` +
-  `or the World Cup star above/around the federation crest. ` +
+  `The jersey colors and the national team's federation crest MAY appear on the chest — ` +
+  `they help make the player recognizable as their national team. Don't add any extra ` +
+  `tournament badge, star or wordmark around the federation crest. ` +
   `Replace tournament/sponsor/manufacturer marks with neutral geometric shapes, solid ` +
   `color blocks, or simply omit them. ` +
   `This rule overrides any style reference — if a reference image contains tournament ` +
@@ -191,7 +187,7 @@ function buildPromptParts(
       (hasTeam
         ? `Use TEAM_TEMPLATE as the base structure: same background layout, geometric shapes, ` +
           `framing, jersey colors and lower info-banner positioning. Recreate the card layout closely, ` +
-          `but replace any Panini logo, brand mark or trademark. ` +
+          `but replace any sticker brand logo or trademark. ` +
           `Do not copy the TEAM_TEMPLATE person's face, hair, pose, name, number or identity. `
         : '') +
       (hasElite
@@ -209,11 +205,11 @@ function buildPromptParts(
           `like real gold leaf, not flat color), iridescent rainbow holographic overlay, prismatic ` +
           `shimmer, premium foil texture, subtle starburst patterns, gold typography for the player ` +
           `name and number. The card outline has GENEROUSLY ROUNDED CORNERS — never sharp 90° corners. `) +
-      `Make them wear the official ${teamName} national soccer team jersey for the FIFA World Cup 2026, ` +
+      `Make them wear a ${teamName} national soccer team jersey in the team's traditional colors, ` +
       `chest crest visible, with gold/holographic stylization integrated into the jersey treatment. ` +
       `If style and identity conflict, prioritize SUBJECT_SELFIE identity. ` +
       `Keep the person's original facial expression from SUBJECT_SELFIE — do not force a smile or change their mood. ` +
-      `Remove or replace any Panini logo, brand mark, watermark or official trademark. ${statsLine}`;
+      `Remove or replace any sticker brand logo, watermark or trademark. ${statsLine}`;
 
     const parts: any[] = [
       { text: 'SUBJECT_SELFIE: identity source. The final image must use this person, not any reference player.' },
@@ -261,11 +257,11 @@ function buildPromptParts(
     ANATOMY_NOTE +
     `Use STYLE_REFERENCE as the exact visual template for the sticker design: background pattern, background colors, ` +
     `lighting, crop, framing, border treatment, geometric shapes, gradients, shadows and lower info-banner layout. ` +
-    `Recreate the background and card layout as closely as possible, but remove or replace any Panini logo, brand mark, ` +
-    `watermark or official trademark. The player/person shown in STYLE_REFERENCE is not the subject. ` +
+    `Recreate the background and card layout as closely as possible, but remove or replace any sticker brand logo, ` +
+    `watermark or trademark. The player/person shown in STYLE_REFERENCE is not the subject. ` +
     `Do not copy, trace, preserve, or recreate the STYLE_REFERENCE person's face, hair, body, pose, jersey, name, ` +
     `number or identity. ` +
-    `Make them wear the official ${teamName} national soccer team jersey for the FIFA World Cup 2026, ` +
+    `Make them wear a ${teamName} national soccer team jersey in the team's traditional colors, ` +
     `chest crest visible. If style and identity conflict, prioritize SUBJECT_SELFIE identity and simplify the style. ` +
     `Keep the person's original facial expression from SUBJECT_SELFIE — do not force a smile or change their mood. ${statsLine}`;
 
@@ -561,7 +557,7 @@ async function callGemini(parts: any[], label: string): Promise<GeminiAttempt> {
     generationConfig: {
       responseModalities: ['TEXT', 'IMAGE'],
       imageConfig: {
-        // Figurinha Panini é vertical (retrato). 3:4 = ~ratio do card colecionável real.
+        // Card colecionável vertical (retrato). 3:4 = ratio padrão de trading card.
         // Antes era 1:1 (quadrado), gerava proporções estranhas de cabeça/ombros.
         aspectRatio: '3:4',
         imageSize: '1K',

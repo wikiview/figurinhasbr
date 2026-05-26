@@ -17,13 +17,11 @@ type Props = {
 const SECTION_NAMES: Record<string, string> = {
   FWC: 'Especiais',
   EXTRA: 'Esmaltadas (Bronze, Prata, Ouro)',
-  CC: 'Coleção Coca-Cola',
 };
 
-const SECTION_ICONS: Record<string, 'trophy' | 'medal' | 'bottle-soda-classic'> = {
+const SECTION_ICONS: Record<string, 'trophy' | 'medal'> = {
   FWC: 'trophy',
   EXTRA: 'medal',
-  CC: 'bottle-soda-classic',
 };
 
 export function TeamHeader({
@@ -71,7 +69,7 @@ export function TeamHeader({
           <MaterialCommunityIcons
             name={sectionIcon}
             size={iconSize}
-            color={teamCode === 'CC' ? '#dc2626' : '#facc15'}
+            color="#facc15"
           />
         ) : flag ? (
           <Image

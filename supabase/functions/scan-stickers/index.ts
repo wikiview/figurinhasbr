@@ -36,16 +36,15 @@ const VALID_TEAM_CODES = [
 
 function buildPrompt(): string {
   return [
-    `Você está vendo o VERSO de figurinhas Panini do álbum FIFA World Cup 2026.`,
+    `Você está vendo o VERSO de figurinhas do álbum de coleção do usuário.`,
     `Cada verso tem um código impresso no topo no formato exato: "<CÓDIGO> <NÚMERO>".`,
     `Exemplos: "BRA 5", "FWC 14", "KOR 18", "ARG 17".`,
     `Códigos válidos de seleção (3 letras): ${VALID_TEAM_CODES.join(', ')}.`,
     `Especiais usam prefixo "FWC" (FWC 0 a FWC 19).`,
     `Existem ainda 4 figurinhas extras esmaltadas com códigos: REGU, BRON, PRAT, OURO (sem número).`,
-    `E 14 da Coca-Cola: CC 1 a CC 14.`,
     `Identifique TODA figurinha física visível na foto, contando duplicatas.`,
     `Para cada uma, retorne o código no formato: "<CÓDIGO>-<NÚMERO>" (com hífen).`,
-    `Exemplos de saída: "BRA-5", "FWC-14", "EXTRA-REGU", "CC-3", "FWC-00" (pra Somos 26).`,
+    `Exemplos de saída: "BRA-5", "FWC-14", "EXTRA-REGU", "FWC-00" (pra Somos 26).`,
     `Só inclua códigos que você consegue ler com NITIDEZ. Se tem dúvida, NÃO inclua — melhor faltar do que inventar.`,
     `IMPORTANTE: se o usuário fotografou 3 cópias físicas da BRA-5, retorne "BRA-5" três vezes no array.`,
     `Se viu 14 figurinhas físicas na foto, o array deve ter 14 entradas (mesmo que alguns códigos se repitam).`,

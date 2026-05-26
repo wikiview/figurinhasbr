@@ -2,24 +2,23 @@ import type { StickerType } from '@/src/lib/types';
 import { PLAYERS } from './players';
 
 /**
- * Catálogo OFICIAL Panini FIFA World Cup 2026 — 998 figurinhas.
+ * Catálogo do álbum de coleção — 984 figurinhas.
  *
- * Confirmações:
+ * Estrutura:
  *   - Verso usa `<COD> <N>` (ex: "KOR 18", "FWC 14")
  *   - Por seleção: 1 = escudo, 13 = foto da seleção, demais = jogadores
  *   - 48 seleções × 20 = 960
  *
  * Estrutura completa:
  *   - 1 figurinha "Somos 26" (id 00, page 0)
- *   - FWC1-FWC8 (Copa 2026 + Bola e Países-Sede, pages 1-3)
+ *   - FWC1-FWC8 (Especiais introdutórios, pages 1-3)
  *   - 48 seleções × 20 = 960 (pages 8-105)
- *   - FWC9-FWC19 (FIFA Museum / História da Copa, pages 106-109)
+ *   - FWC9-FWC19 (História da Copa, pages 106-109)
  *   - REGU, BRON, PRAT, OURO (Extra Stickers, page 110)
- *   - CC1-CC14 (Coca-Cola, page 111)
  *
- * Total: 1 + 8 + 960 + 11 + 4 + 14 = 998 ✓
+ * Total: 1 + 8 + 960 + 11 + 4 = 984
  *
- * Ordem dos países segue a ordem real do álbum (não alfabética).
+ * Ordem dos países segue a ordem do álbum (não alfabética).
  */
 
 export type SeedSticker = {
@@ -92,7 +91,7 @@ export function buildSeed(): SeedSticker[] {
   out.push({
     id: 'FWC-00',
     number: '00',
-    team: 'FIFA',
+    team: 'Especiais',
     team_code: 'FWC',
     player_name: 'Somos 26',
     type: 'special',
@@ -102,15 +101,15 @@ export function buildSeed(): SeedSticker[] {
 
   // ===== FWC 1-4: Copa 2026 (page 1) =====
   const FWC_INTRO = [
-    { n: 1, name: 'Emblema oficial 1/2', shiny: true,  type: 'logo' as const },
-    { n: 2, name: 'Emblema oficial 2/2', shiny: true,  type: 'logo' as const },
-    { n: 3, name: 'Mascotes (Maple, Zayu, Clutch)', shiny: false, type: 'special' as const },
-    { n: 4, name: 'Slogan oficial',      shiny: false, type: 'special' as const },
+    { n: 1, name: 'Emblema 1', shiny: true,  type: 'logo' as const },
+    { n: 2, name: 'Emblema 2', shiny: true,  type: 'logo' as const },
+    { n: 3, name: 'Mascotes',  shiny: false, type: 'special' as const },
+    { n: 4, name: 'Slogan',    shiny: false, type: 'special' as const },
   ];
   for (const f of FWC_INTRO) {
     out.push({
       id: `FWC-${f.n}`, number: String(f.n),
-      team: 'FIFA', team_code: 'FWC',
+      team: 'Especiais', team_code: 'FWC',
       player_name: f.name, type: f.type, is_shiny: f.shiny,
       display_order: order++,
     });
@@ -118,7 +117,7 @@ export function buildSeed(): SeedSticker[] {
 
   // ===== FWC 5-8: Bola + Sedes dos 3 anfitriões (pages 2-3) =====
   const FWC_HOSTS = [
-    { n: 5, name: 'Bola oficial',     shiny: true  },
+    { n: 5, name: 'Bola da Copa',     shiny: true  },
     { n: 6, name: 'Sedes - Canadá',   shiny: false },
     { n: 7, name: 'Sedes - México',   shiny: false },
     { n: 8, name: 'Sedes - EUA',      shiny: false },
@@ -126,7 +125,7 @@ export function buildSeed(): SeedSticker[] {
   for (const f of FWC_HOSTS) {
     out.push({
       id: `FWC-${f.n}`, number: String(f.n),
-      team: 'FIFA', team_code: 'FWC',
+      team: 'Especiais', team_code: 'FWC',
       player_name: f.name, type: 'special', is_shiny: f.shiny,
       display_order: order++,
     });
@@ -167,7 +166,7 @@ export function buildSeed(): SeedSticker[] {
     }
   }
 
-  // ===== FWC 9-19: FIFA Museum / História da Copa (pages 106-109) =====
+  // ===== FWC 9-19: História da Copa (pages 106-109) =====
   const MUSEUM = [
     { n: 9,  name: 'Itália 1934' },
     { n: 10, name: 'Uruguai 1950' },
@@ -184,8 +183,8 @@ export function buildSeed(): SeedSticker[] {
   for (const m of MUSEUM) {
     out.push({
       id: `FWC-${m.n}`, number: String(m.n),
-      team: 'FIFA', team_code: 'FWC',
-      player_name: `Museu FIFA: ${m.name}`,
+      team: 'Especiais', team_code: 'FWC',
+      player_name: `História: ${m.name}`,
       type: 'special', is_shiny: false,
       display_order: order++,
     });
@@ -207,17 +206,6 @@ export function buildSeed(): SeedSticker[] {
       player_name: e.name,
       type: 'legend',
       is_shiny: e.shiny,
-      display_order: order++,
-    });
-  }
-
-  // ===== CC 1-14: Coleção Coca-Cola (page 111) =====
-  for (let i = 1; i <= 14; i++) {
-    out.push({
-      id: `CC-${i}`, number: String(i),
-      team: 'Coca-Cola', team_code: 'CC',
-      player_name: `Coca-Cola ${i}`,
-      type: 'special', is_shiny: true,
       display_order: order++,
     });
   }

@@ -1,7 +1,5 @@
 /**
- * Jogadores do álbum Panini FIFA World Cup 2026.
- * Fonte: worldtradingcards.com (cross-validated com confirmações físicas:
- *   ARG 17 = Messi, KOR 18 = Heung-min Son, BRA 20 = Estêvão, USA 2 = Matt Freese).
+ * Jogadores do álbum de coleção da Copa 2026.
  *
  * Estrutura: PLAYERS[teamCode][slotNumber] = nome do jogador
  *   slotNumber é string "2" a "20" excluindo "13" (foto da seleção).
